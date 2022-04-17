@@ -1,0 +1,76 @@
+﻿@using DevExtremeAspNetCoreAppBootstrap.Models
+
+<h2>Employee</h2>
+<br/>
+@(Html.DevExtreme().DataGrid<Employee> ()
+    .ID("grid")
+    .ShowBorders(true)
+    .RepaintChangesOnly(true)
+    .DataSource(d => d.WebApi().
+        LoadAction("Get").
+        Controller("EmployeeGrid").
+        Key("Id").
+        OnBeforeSend("beforeSend").
+        InsertAction("InsertEmployee").
+        UpdateAction("UpdateEmployee").
+        DeleteAction("DeleteEmployee"))
+            .Columns(columns => {
+                columns.AddFor(m => m.Id);
+                columns.AddFor(m => m.Name);
+                columns.AddFor(m => m.Gender);
+                columns.AddFor(m => m.Age);
+                columns.AddFor(m => m.Salary);
+            })
+    .Paging(p => p.PageSize(10))
+    .FilterRow(f => f.Visible(true))
+    .HeaderFilter(f => f.Visible(true))
+    .GroupPanel(p => p.Visible(true))
+    .Grouping(g => g.AutoExpandAll(false))
+    .RemoteOperations(true)
+    .Editing(editing => editing
+        .AllowAdding(true)
+        .AllowDeleting(true)
+        .AllowUpdating(true)
+    )
+    .Summary(s => s
+        .TotalItems(totalItems => {
+            totalItems.AddFor(m => m.Salary).SummaryType(SummaryType.Count);
+        })
+        .GroupItems(groupItems => {
+            groupItems.Add().SummaryType(SummaryType.Count);
+        })
+    )
+)
+
+<div class="options" style="background-color: cornsilk">
+    <div id="requests">
+        <div>
+            <div class="caption">Network Requests</div>
+            @(Html.DevExtreme().Button()
+                .ID("clear")
+                .Text("Clear")
+                .OnClick(@<text> function() {
+                    $("#requests ul").empty();
+                } </text>)
+            )
+        </div>
+        <ul></ul>
+    </div>
+</div>
+<br />
+<br />
+<br />
+<script>
+    function beforeSend(operation, ajaxSettings) {
+        var data = ajaxSettings.data || {},
+            args = Object.keys(data).map(function (key) {
+                return key + "=" + data[key];
+            }).join(" ");
+
+        var logList = $("#requests ul"),
+            time = DevExpress.localization.formatDate(new Date(), "HH:mm:ss"),
+            newItem = $("<li>").text([time, ajaxSettings.method, ajaxSettings.url, args].join(" "));
+
+        logList.prepend(newItem);
+    }
+</script>
